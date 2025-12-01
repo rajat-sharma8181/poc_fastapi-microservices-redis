@@ -40,6 +40,6 @@ jobs:
       run: |
         REGISTRY=${{ secrets.ACR_NAME }}.azurecr.io
         IMAGE_NAME=inventory-frontend
-        TAG=latest
+        TAG=$(date +%s)
     
         docker push $REGISTRY/$IMAGE_NAME:$TAG
