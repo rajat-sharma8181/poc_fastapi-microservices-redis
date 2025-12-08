@@ -27,8 +27,11 @@ jobs:
       with:
         context: ./inventory_frontend
         push: true
-        tags: starasset.azurecr.io/inventoryapp:${{ github.run_id }}
-
+        tags: starasset.azurecr.io/inventoryapp:${{ github.run_number }}
+  
+    - name: Echo Docker Build Image Number
+      run: echo "This workflow image build number is - inventoryapp:${{ github.run_number }}"
+      
     # - name: Azure Login
     #   uses: Azure/login@v2.3.0
     #   with:
