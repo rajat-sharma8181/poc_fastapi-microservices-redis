@@ -18,8 +18,8 @@ jobs:
     - name: ACR Login
       uses: docker/login-action@v3.6.0
       with:
-        registry: inventoryacrjk.azurecr.io
-        username: inventoryacrjk
+        registry: starasset.azurecr.io
+        username: starasset
         password: ${{ secrets.ACR_PASS }}
 
     - name: Build and push Docker images
@@ -27,7 +27,7 @@ jobs:
       with:
         context: ./inventory_frontend
         push: true
-        tags: inventoryacrjk.azurecr.io/inventoryapp:${{ github.run_id }}
+        tags: starasset.azurecr.io/inventoryapp:${{ github.run_id }}
 
     # - name: Azure Login
     #   uses: Azure/login@v2.3.0
