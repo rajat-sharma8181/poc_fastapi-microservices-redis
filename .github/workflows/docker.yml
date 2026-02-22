@@ -1,0 +1,46 @@
+name: Docker Image CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Push Microservices
+    runs-on: ubuntu-latest
+    strategy:
+      # This matrix allows you to run builds for all services in parallel
+      matrix:
+        service: [inventory_frontend, inventory, payment, redis_custom]
+        include:
+          - service: inventory_frontend
+            context: ./inventory_frontend
+            image_name: inventory_frontend
+          - service: inventory
+            context: ./inventory
+            image_name: inventory
+          - service: payment
+            context: ./payment
+            image_name: payment
+          # - service: redis_custom
+          #   context: ./redis # Only if you have a custom Dockerfile for Redis
+          #   image_name: redis
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: ACR Login
+      uses: docker/login-action@v3
+      with:
+        registry: nitorAcrPoc1.azurecr.io
+        username: nitorAcrPoc1
+        password: ${{ secrets.ACR_PASS }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        push: true
+        tags: nitorAcrPoc1.azurecr.io/${{ matrix.image_name }}:${{ github.run_number }}
+  
+    - name: Summary
+      run: echo "Built and pushed ${{ matrix.image_name }}:${{ github.run_number }}"
