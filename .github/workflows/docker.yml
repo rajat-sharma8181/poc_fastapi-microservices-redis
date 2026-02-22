@@ -33,8 +33,19 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: ACR Login
-      run: az acr login --name nitorAcrPoc1
+    - name: Get ACR Admin Password
+      id: acrpass
+      run: |
+        PASS=$(az acr credential show \
+          --name nitorAcrPoc1 \
+          --query "passwords[0].value" -o tsv)
+        echo "ACR_PASS=$PASS" >> $GITHUB_ENV
+
+    - name: Docker Login to ACR
+      run: |
+        echo "$ACR_PASS" | docker login nitorAcrPoc1.azurecr.io \
+          -u nitorAcrPoc1 \
+          --password-stdin
 
     - name: Build and push Docker images
       uses: docker/build-push-action@v6
