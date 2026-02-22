@@ -159,10 +159,10 @@ jobs:
         export REGISTRY=nitorAcrPoc1.azurecr.io
 
         # Envsubst se variables replace karke apply kar rahe hain
-        envsubst < k8s/redis-deployment.yml | kubectl apply -f -
-        envsubst < k8s/inventory-deployment.yml | kubectl apply -f -
-        envsubst < k8s/payment-deployment.yml | kubectl apply -f -
-        envsubst < k8s/inventory-frontend-deployment.yml | kubectl apply -f -
+        envsubst < redis-deployment.yml | kubectl apply -f -
+        envsubst < inventory-deployment.yml | kubectl apply -f -
+        envsubst < payment-deployment.yml | kubectl apply -f -
+        envsubst < inventory-frontend-deployment.yml | kubectl apply -f -
         
         # Optional: Deployment status check
         kubectl rollout status deployment/inventory-deployment
