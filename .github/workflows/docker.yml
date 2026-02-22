@@ -1,14 +1,90 @@
-name: Docker Image CI
+# name: Docker Image CI
+
+# on:
+#   workflow_dispatch:
+
+# jobs:
+#   build:
+#     name: Build and Push Microservices
+#     runs-on: ubuntu-latest
+#     strategy:
+#       # This matrix allows you to run builds for all services in parallel
+#       matrix:
+#         service: [inventory_frontend, inventory, payment]
+#         include:
+#           - service: inventory_frontend
+#             context: ./inventory_frontend
+#             image_name: inventory_frontend
+#           - service: inventory
+#             context: ./inventory
+#             image_name: inventory
+#           - service: payment
+#             context: ./payment
+#             image_name: payment
+#           # - service: redis_custom
+#           #   context: ./redis # Only if you have a custom Dockerfile for Redis
+#           #   image_name: redis
+
+#     steps:
+#     - uses: actions/checkout@v4
+
+#     - name: Azure Login
+#       uses: azure/login@v2
+#       with:
+#         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#     - name: Get ACR Admin Password
+#       id: acrpass
+#       run: |
+#         PASS=$(az acr credential show \
+#           --name nitorAcrPoc1 \
+#           --query "passwords[0].value" -o tsv)
+#         echo "ACR_PASS=$PASS" >> $GITHUB_ENV
+
+#     - name: Docker Login to ACR
+#       run: |
+#         echo "$ACR_PASS" | docker login nitorAcrPoc1.azurecr.io \
+#           -u nitorAcrPoc1 \
+#           --password-stdin
+
+#     - name: Build and push Docker images
+#       uses: docker/build-push-action@v6
+#       with:
+#         context: ${{ matrix.context }}
+#         push: true
+#         tags: nitorAcrPoc1.azurecr.io/${{ matrix.image_name }}:${{ github.run_number }}
+  
+#     - name: Summary
+#       run: echo "Built and pushed ${{ matrix.image_name }}:${{ github.run_number }}"
+
+#     - name: Set AKS Context
+#       uses: azure/aks-set-context@v3
+#       with:
+#         resource-group: "rg_poc_1"
+#         cluster-name: "nitorAksPoc1"
+
+#     - name: Deploy to AKS
+#       run: |
+#         export IMAGE_TAG=${{ github.run_number }}
+#         export REGISTRY=nitorAcrPoc1.azurecr.io
+
+#         envsubst < k8s/redis-deployment.yml | kubectl apply -f -
+#         envsubst < k8s/inventory-deployment.yml | kubectl apply -f -
+#         envsubst < k8s/payment-deployment.yml | kubectl apply -f -
+#         envsubst < k8s/inventory-frontend-deployment.yml | kubectl apply -f -
+
+
+name: Docker Image CI/CD
 
 on:
   workflow_dispatch:
 
 jobs:
+  # --- Job 1: Build and Push Images ---
   build:
     name: Build and Push Microservices
     runs-on: ubuntu-latest
     strategy:
-      # This matrix allows you to run builds for all services in parallel
       matrix:
         service: [inventory_frontend, inventory, payment]
         include:
@@ -21,9 +97,6 @@ jobs:
           - service: payment
             context: ./payment
             image_name: payment
-          # - service: redis_custom
-          #   context: ./redis # Only if you have a custom Dockerfile for Redis
-          #   image_name: redis
 
     steps:
     - uses: actions/checkout@v4
@@ -53,9 +126,20 @@ jobs:
         context: ${{ matrix.context }}
         push: true
         tags: nitorAcrPoc1.azurecr.io/${{ matrix.image_name }}:${{ github.run_number }}
-  
-    - name: Summary
-      run: echo "Built and pushed ${{ matrix.image_name }}:${{ github.run_number }}"
+
+  # --- Job 2: Deploy to AKS ---
+  deploy:
+    name: Deploy to AKS
+    runs-on: ubuntu-latest
+    needs: build  # Ye job tabhi chalegi jab build job success hogi
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Set AKS Context
       uses: azure/aks-set-context@v3
@@ -65,10 +149,15 @@ jobs:
 
     - name: Deploy to AKS
       run: |
+        # Variables set kar rahe hain jo YAML templates mein use honge
         export IMAGE_TAG=${{ github.run_number }}
         export REGISTRY=nitorAcrPoc1.azurecr.io
 
+        # Envsubst se variables replace karke apply kar rahe hain
         envsubst < k8s/redis-deployment.yml | kubectl apply -f -
         envsubst < k8s/inventory-deployment.yml | kubectl apply -f -
         envsubst < k8s/payment-deployment.yml | kubectl apply -f -
         envsubst < k8s/inventory-frontend-deployment.yml | kubectl apply -f -
+        
+        # Optional: Deployment status check
+        kubectl rollout status deployment/inventory-deployment
