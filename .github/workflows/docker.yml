@@ -165,4 +165,4 @@ jobs:
         envsubst < inventory-frontend-deployment.yml | kubectl apply -f -
         
         # Optional: Deployment status check
-        kubectl rollout status deployment/inventory-deployment
+        # kubectl rollout status deployment/inventory-deployment
