@@ -132,6 +132,11 @@ jobs:
     name: Deploy to AKS
     runs-on: ubuntu-latest
     needs: build  # Ye job tabhi chalegi jab build job success hogi
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./K8s
     
     steps:
     - uses: actions/checkout@v4
