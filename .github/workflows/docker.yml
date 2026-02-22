@@ -10,7 +10,7 @@ jobs:
     strategy:
       # This matrix allows you to run builds for all services in parallel
       matrix:
-        service: [inventory_frontend, inventory, payment, redis_custom]
+        service: [inventory_frontend, inventory, payment]
         include:
           - service: inventory_frontend
             context: ./inventory_frontend
