@@ -12,7 +12,7 @@ spec:
       labels:
         app: inventory
     spec:
-      containers:
+      containers :
         - name: inventory
           image: ${REGISTRY}/inventory:${IMAGE_TAG}
           ports:

@@ -155,10 +155,12 @@ jobs:
     - name: Deploy to AKS
       run: |
         # Variables set kar rahe hain jo YAML templates mein use honge
+        
         export IMAGE_TAG=${{ github.run_number }}
         export REGISTRY=nitorAcrPoc1.azurecr.io
 
         # Envsubst se variables replace karke apply kar rahe hain
+
         envsubst < redis-deployment.yml | kubectl apply -f -
         envsubst < inventory-deployment.yml | kubectl apply -f -
         envsubst < payment-deployment.yml | kubectl apply -f -
