@@ -77,7 +77,7 @@
 name: Docker Image CI/CD
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   #manual run
 
 jobs:
   # --- Job 1: Build and Push Images ---
@@ -85,11 +85,11 @@ jobs:
     name: Build and Push Microservices
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        service: [inventory_frontend, inventory, payment]
+      matrix:  
+        service: [inventory_frontend, inventory, payment]  #it will all the serivce parallerly
         include:
-          - service: inventory_frontend
-            context: ./inventory_frontend
+          - service: inventory_frontend  
+            context: ./inventory_frontend  #identify docker files
             image_name: inventory_frontend
           - service: inventory
             context: ./inventory
@@ -106,20 +106,20 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Get ACR Admin Password
+    - name: Get ACR Admin Password  #fetching cred dynamiclly
       id: acrpass
       run: |
         PASS=$(az acr credential show \
           --name nitorAcrPoc1 \
           --query "passwords[0].value" -o tsv)
-        echo "ACR_PASS=$PASS" >> $GITHUB_ENV
+        echo "ACR_PASS=$PASS" >> $GITHUB_ENV 
 
     - name: Docker Login to ACR
       run: |
         echo "$ACR_PASS" | docker login nitorAcrPoc1.azurecr.io \
           -u nitorAcrPoc1 \
-          --password-stdin
-
+          --password-stdin  
+  
     - name: Build and push Docker images
       uses: docker/build-push-action@v6
       with:
@@ -155,7 +155,7 @@ jobs:
     - name: Deploy to AKS
       run: |
         # Variables set kar rahe hain jo YAML templates mein use honge
-        
+
         export IMAGE_TAG=${{ github.run_number }}
         export REGISTRY=nitorAcrPoc1.azurecr.io
 
